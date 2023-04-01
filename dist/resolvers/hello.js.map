@@ -1,0 +1,1 @@
+{"version":3,"file":"hello.js","sourceRoot":"","sources":["../../src/resolvers/hello.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,+CAA+C;AAG7C,IAAa,cAAc,GAA3B,MAAa,cAAc;IAEzB,KAAK;QACD,OAAO,aAAa,CAAA;IACxB,CAAC;CAEF,CAAA;AAJC;IADC,IAAA,oBAAK,EAAC,GAAE,EAAE,CAAC,MAAM,CAAC;;;;2CAGlB;AAJU,cAAc;IAD3B,IAAA,uBAAQ,GAAE;GACG,cAAc,CAM1B;AANY,wCAAc"}

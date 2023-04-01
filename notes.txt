@@ -1,0 +1,4 @@
+// in real world(prod level) we usually dont use ts-node rather we will compile ts to js and run it through node
+watch (tcs-w) ---
+all it is doing is taking ts code and coverting it into js
+nodemon is gonna recompile the ts code and it is going to rerun it as we write and amke changes to ts file 

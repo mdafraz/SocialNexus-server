@@ -13,56 +13,81 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
-const core_1 = require("@mikro-orm/core");
 const constants_1 = require("./constants");
-const mikro_orm_config_1 = __importDefault(require("./mikro-orm.config"));
 const express_1 = __importDefault(require("express"));
-const apollo_server_express_1 = require("apollo-server-express");
+const server_1 = require("@apollo/server");
 const type_graphql_1 = require("type-graphql");
 const hello_1 = require("./resolvers/hello");
 const post_1 = require("./resolvers/post");
 const user_1 = require("./resolvers/user");
-const redis_1 = __importDefault(require("redis"));
 const express_session_1 = __importDefault(require("express-session"));
+const connect_redis_1 = __importDefault(require("connect-redis"));
+const express4_1 = require("@apollo/server/express4");
+const body_parser_1 = __importDefault(require("body-parser"));
+const ioredis_1 = __importDefault(require("ioredis"));
+const typeorm_1 = require("typeorm");
+const Post_1 = require("./entities/Post");
+const Users_1 = require("./entities/Users");
+const path_1 = __importDefault(require("path"));
+const conn = new typeorm_1.DataSource({
+    type: "postgres",
+    database: "reddit2",
+    username: "postgres",
+    password: "root",
+    logging: true,
+    synchronize: true,
+    migrations: [path_1.default.join(__dirname, "./migrations/*")],
+    entities: [Post_1.Post, Users_1.User],
+});
+const redis = new ioredis_1.default();
+redis.connect().catch(console.error);
+const redisStore = new connect_redis_1.default({
+    client: redis,
+    prefix: "myapp:",
+});
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        const orm = yield core_1.MikroORM.init(mikro_orm_config_1.default);
-        yield core_1.RequestContext.createAsync(orm.em, () => __awaiter(this, void 0, void 0, function* () {
-            yield orm.getMigrator().up();
-            const app = (0, express_1.default)();
-            const RedisStore = require('connect-redis')(express_session_1.default);
-            const redisClient = redis_1.default.createClient();
-            app.use((0, express_session_1.default)({
-                name: "qid",
-                store: new RedisStore({
-                    client: redisClient,
-                    disableTouch: true,
-                }),
-                cookie: {
-                    maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
-                    httpOnly: true,
-                    secure: constants_1.__prod__,
-                    sameSite: 'lax',
-                },
-                secret: 'adnkjandkjankdnasdsjan',
-                resave: false,
-            }));
-            const appoloServer = new apollo_server_express_1.ApolloServer({
-                schema: yield (0, type_graphql_1.buildSchema)({
-                    resolvers: [hello_1.HelloResolvers, post_1.PostResolvers, user_1.UserResolvers],
-                    validate: false
-                }),
-                context: ({ req, res }) => ({ em: orm.em, req, res }),
-            });
-            yield appoloServer.start();
-            appoloServer.applyMiddleware({ app });
-            app.listen(4000, () => {
-                console.log("server started on localhost :4000");
-            });
+        yield conn.initialize();
+        yield conn.runMigrations();
+        const app = (0, express_1.default)();
+        app.use(body_parser_1.default.json({ limit: "50mb" }));
+        app.use((0, express_session_1.default)({
+            name: constants_1.COOKIE_NAME,
+            store: redisStore,
+            cookie: {
+                maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
+                httpOnly: true,
+                secure: constants_1.__prod__,
+                sameSite: "none",
+            },
+            saveUninitialized: false,
+            secret: "adnkjandkjankdnasdsjan",
+            resave: false,
         }));
+        const appoloServer = new server_1.ApolloServer({
+            schema: yield (0, type_graphql_1.buildSchema)({
+                resolvers: [hello_1.HelloResolvers, post_1.PostResolvers, user_1.UserResolvers],
+                validate: false,
+            }),
+        });
+        yield appoloServer.start();
+        app.use("/graphql", (0, express4_1.expressMiddleware)(appoloServer, {
+            context: ({ req, res }) => {
+                res.setHeader("Access-Control-Allow-Credentials", "true");
+                return {
+                    req,
+                    res,
+                    redis,
+                };
+            },
+        }));
+        app.listen(4000, () => {
+            console.log("server started on localhost :4000");
+        });
     });
 }
 main().catch((err) => {
     console.error(err);
 });
+exports.default = conn;
 //# sourceMappingURL=index.js.map

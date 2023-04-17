@@ -1,26 +1,53 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 import { Field, ObjectType } from "type-graphql";
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
+import { User } from "./Users";
 
 //this is our first database table post
-//property means they are regular columns in the table 
+//property means they are regular columns in the table
 @ObjectType()
 @Entity()
-export class Post {
+export class Post extends BaseEntity {
   @Field()
-  @PrimaryKey()
-  id! : number;
-
-  @Field(() => String)
-  @Property({type:"date"}) 
-  createdAt = new Date();
-
-  @Field(() => String)
-  @Property({type:"date" , onUpdate: () => new Date() })
-  updatedAt = new Date();
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Field()
-  //if we hide @field in any of the field then that field will not be available when 
-  //we try to access it using query in appolo server 
-  @Property({type : "text"})
-  title! : string;  
+  //if we hide @field in any of the field then that field will not be available when
+  //we try to access it using query in appolo server
+  @Column()
+  title!: string;
+
+  @Field()
+  @Column()
+  text!: string;
+
+  @Field()
+  @Column({ type: "int", default: 0 })
+  points!: number;
+
+  @Field()
+  @Column()
+  creatorId: number;
+
+  @Field()
+  @ManyToOne(() => User, (user) => user.posts)
+  creator: User;
+
+  @Field(() => String)
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @Field(() => String)
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
+
+// we will set many to one relationship for post beacuse a single user can have multiple post

@@ -61,6 +61,12 @@ UserResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], UserResponse);
 let UserResolvers = class UserResolvers {
+    email(user, { req }) {
+        if (req.session.UserId === user.id) {
+            return user.email;
+        }
+        return "";
+    }
     changePassword(token, newPassword, { redis, req }) {
         return __awaiter(this, void 0, void 0, function* () {
             if (newPassword.length <= 2) {
@@ -212,6 +218,14 @@ let UserResolvers = class UserResolvers {
         }));
     }
 };
+__decorate([
+    (0, type_graphql_1.FieldResolver)(() => String),
+    __param(0, (0, type_graphql_1.Root)()),
+    __param(1, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Users_1.User, Object]),
+    __metadata("design:returntype", void 0)
+], UserResolvers.prototype, "email", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => UserResponse),
     __param(0, (0, type_graphql_1.Arg)("token")),

@@ -29,6 +29,7 @@ const typeorm_1 = require("typeorm");
 const Post_1 = require("./entities/Post");
 const Users_1 = require("./entities/Users");
 const path_1 = __importDefault(require("path"));
+const Updoot_1 = require("./entities/Updoot");
 const conn = new typeorm_1.DataSource({
     type: "postgres",
     database: "reddit2",
@@ -37,7 +38,7 @@ const conn = new typeorm_1.DataSource({
     logging: true,
     synchronize: true,
     migrations: [path_1.default.join(__dirname, "./migrations/*")],
-    entities: [Post_1.Post, Users_1.User],
+    entities: [Post_1.Post, Users_1.User, Updoot_1.Updoot],
 });
 const redis = new ioredis_1.default();
 redis.connect().catch(console.error);

@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Post } from "./Post";
+import { Updoot } from "./Updoot";
 
 //this is our first database table post
 //property means they are regular columns in the table
@@ -32,6 +33,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Post, (post) => post.creator)
   posts: Post[];
+
+  @OneToMany(() => Updoot, (updoot) => updoot.user)
+  updoots: Updoot[];
 
   @Field(() => String)
   @CreateDateColumn()

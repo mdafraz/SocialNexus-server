@@ -17,6 +17,7 @@ import {
 } from "type-graphql";
 import { isAuth } from "../middleware/isAuth";
 import conn from "../index";
+import { Updoot } from "../entities/Updoot";
 @InputType()
 class PostInputs {
   @Field()
@@ -38,6 +39,38 @@ export class PostResolvers {
   @FieldResolver(() => String)
   textSnippet(@Root() root: Post) {
     return root.text.slice(0, 50);
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async vote(
+    @Arg("postId", () => Int) postId: number,
+    @Arg("value", () => Int) value: number,
+    @Ctx() { req }: MyContext
+  ) {
+    const isUpdoot = value !== -1;
+    const realValue = isUpdoot ? 1 : -1;
+    const { userId } = req.session;
+    // Updoot.insert({
+    //   userId,
+    //   postId,
+    //   value: realValue,
+    // });
+    await conn.query(
+      `
+    START TRANSACTION;
+
+    insert into updoot ("userId" , "postId" , value)
+    values(${userId} , ${postId},${realValue});
+
+    update post 
+    set points = points + ${realValue}
+    where id =${postId};
+
+    COMMIT;
+    `
+    );
+    return true;
   }
 
   @Query(() => PaginatedPosts)
@@ -63,8 +96,6 @@ export class PostResolvers {
           'email' , u.email,
           'createdAt' , u."createdAt",
           'updatedAt' , u."updatedAt"
-
-
           ) creator  
         from post p
       inner join public.user u on u.id = p."creatorId"
@@ -74,7 +105,6 @@ export class PostResolvers {
       `,
       replacements
     );
-    console.log("posts", posts);
 
     // const qb = conn
     //   .getRepository(Post)
@@ -150,3 +180,4 @@ export class PostResolvers {
 // we can use json_build_object because we are using postgress sql
 //json_build_object("username" , u.username) creator
 //json_build_object( this is key ,  this is the value) objectsname
+//bug with me query

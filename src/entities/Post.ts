@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "./Users";
+import { Updoot } from "./Updoot";
 
 //this is our first database table post
 //property means they are regular columns in the table
@@ -40,6 +42,9 @@ export class Post extends BaseEntity {
   @Field()
   @ManyToOne(() => User, (user) => user.posts)
   creator: User;
+
+  @OneToMany(() => Updoot, (updoot) => updoot.post)
+  updoots: Updoot[];
 
   @Field(() => String)
   @CreateDateColumn()

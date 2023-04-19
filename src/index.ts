@@ -15,6 +15,7 @@ import { DataSource } from "typeorm";
 import { Post } from "./entities/Post";
 import { User } from "./entities/Users";
 import path from "path";
+import { Updoot } from "./entities/Updoot";
 
 const conn = new DataSource({
   type: "postgres",
@@ -25,7 +26,7 @@ const conn = new DataSource({
   synchronize: true,
   migrations: [path.join(__dirname, "./migrations/*")],
   //synchonization true will automatically create tables automatically for us without running a migration
-  entities: [Post, User],
+  entities: [Post, User, Updoot],
 });
 
 // Initialize client.

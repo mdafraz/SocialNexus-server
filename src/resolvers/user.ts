@@ -38,13 +38,13 @@ class UserResponse {
 
 @Resolver(User)
 export class UserResolvers {
-  // @FieldResolver(() => String)
-  // email(@Root() user: User, @Ctx() { req }: MyContext) {
-  //   if (req.session.UserId === user.id) {
-  //     return user.email;
-  //   }
-  //   return "";
-  // }
+  @FieldResolver(() => String)
+  email(@Root() user: User, @Ctx() { req }: MyContext) {
+    if (req.session.UserId === user.id) {
+      return user.email;
+    }
+    return "";
+  }
   @Mutation(() => UserResponse)
   async changePassword(
     @Arg("token") token: string,

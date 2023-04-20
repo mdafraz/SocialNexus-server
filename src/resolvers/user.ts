@@ -137,15 +137,22 @@ export class UserResolvers {
   }
 
   @Query(() => User, { nullable: true })
-  me(@Ctx() { req }: MyContext) {
+  async me(@Ctx() { req }: MyContext) {
     //you are not logged in
     const userId = req.session.userId;
+    console.log(userId);
     if (!userId) {
       return null;
     }
+    const user = await User.find({
+      where: {
+        id: userId,
+      },
+    });
+    console.log(user);
 
     // const user = await em.findOne(User, { id: userId });
-    return User.findOneBy(userId);
+    return user[0];
   }
 
   @Mutation(() => UserResponse)

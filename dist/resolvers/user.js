@@ -128,11 +128,20 @@ let UserResolvers = class UserResolvers {
         });
     }
     me({ req }) {
-        const userId = req.session.userId;
-        if (!userId) {
-            return null;
-        }
-        return Users_1.User.findOneBy(userId);
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = req.session.userId;
+            console.log(userId);
+            if (!userId) {
+                return null;
+            }
+            const user = yield Users_1.User.find({
+                where: {
+                    id: userId,
+                },
+            });
+            console.log(user);
+            return user[0];
+        });
     }
     register(options, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -248,7 +257,7 @@ __decorate([
     __param(0, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], UserResolvers.prototype, "me", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => UserResponse),

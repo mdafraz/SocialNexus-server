@@ -1,0 +1,11 @@
+data loader vs normal query
+normal query :
+we include all things in a single sql query to fetch everything 
+adv
+it is pretty simply 
+it is pretty good for performance
+disadv
+we are always fetching the creator even if we do not require it in the posts.grpahql
+and sometimes it is good to split out a query into multiple smaller query instead of a big query 
+
+we are gonna add a field resolver so no matter where our posts comes from its going to fetch the data

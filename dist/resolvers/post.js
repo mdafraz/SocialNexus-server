@@ -30,6 +30,7 @@ const type_graphql_1 = require("type-graphql");
 const isAuth_1 = require("../middleware/isAuth");
 const index_1 = __importDefault(require("../index"));
 const Updoot_1 = require("../entities/Updoot");
+const Users_1 = require("../entities/Users");
 let PostInputs = class PostInputs {
 };
 __decorate([
@@ -59,6 +60,13 @@ PaginatedPosts = __decorate([
 let PostResolvers = class PostResolvers {
     textSnippet(root) {
         return root.text.slice(0, 50);
+    }
+    creator(post) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield Users_1.User.findBy({ id: post.creatorId });
+            console.log(user);
+            return user[0];
+        });
     }
     vote(postId, value, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -110,13 +118,6 @@ let PostResolvers = class PostResolvers {
             }
             const posts = yield index_1.default.query(`
       select p.* ,
-        json_build_object(
-          'id' , u.id,
-          'username' , u.username,
-          'email' , u.email,
-          'createdAt' , u."createdAt",
-          'updatedAt' , u."updatedAt"
-          ) creator,
           ${req.session.userId
                 ? '(select value from updoot where "userId" = $2 and "postId"=p.id )"voteStatus"'
                 : 'null as "voteStatus"'} 
@@ -156,21 +157,23 @@ let PostResolvers = class PostResolvers {
             return Post_1.Post.create(Object.assign(Object.assign({}, input), { creatorId: req.session.userId })).save();
         });
     }
-    updatePost(id, title) {
+    updatePost(id, title, text, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
-            const post = yield Post_1.Post.findOneBy({ id });
-            if (!post) {
-                return null;
-            }
-            if (typeof title !== "undefined") {
-                yield Post_1.Post.update({ id }, { title: title });
-            }
-            return post;
+            const result = yield index_1.default
+                .createQueryBuilder()
+                .update(Post_1.Post)
+                .set({ title: title, text: text })
+                .where("id = :id and creatorId = :creatorId", {
+                id,
+                creatorId: req.session.userId,
+            })
+                .returning("*")
+                .execute();
+            return result.raw[0];
         });
     }
     deletePost(id, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield Updoot_1.Updoot.delete({ postId: id });
             yield Post_1.Post.delete({ id, creatorId: req.session.userId });
             return true;
         });
@@ -183,6 +186,13 @@ __decorate([
     __metadata("design:paramtypes", [Post_1.Post]),
     __metadata("design:returntype", void 0)
 ], PostResolvers.prototype, "textSnippet", null);
+__decorate([
+    (0, type_graphql_1.FieldResolver)(() => Users_1.User),
+    __param(0, (0, type_graphql_1.Root)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Post_1.Post]),
+    __metadata("design:returntype", Promise)
+], PostResolvers.prototype, "creator", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => Boolean),
     (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
@@ -220,10 +230,13 @@ __decorate([
 ], PostResolvers.prototype, "createPost", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => Post_1.Post, { nullable: true }),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
     __param(0, (0, type_graphql_1.Arg)("id", () => type_graphql_1.Int)),
-    __param(1, (0, type_graphql_1.Arg)("title", () => String, { nullable: true })),
+    __param(1, (0, type_graphql_1.Arg)("title")),
+    __param(2, (0, type_graphql_1.Arg)("text")),
+    __param(3, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String]),
+    __metadata("design:paramtypes", [Number, String, String, Object]),
     __metadata("design:returntype", Promise)
 ], PostResolvers.prototype, "updatePost", null);
 __decorate([

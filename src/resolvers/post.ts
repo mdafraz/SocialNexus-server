@@ -18,6 +18,8 @@ import {
 import { isAuth } from "../middleware/isAuth";
 import conn from "../index";
 import { Updoot } from "../entities/Updoot";
+import { error } from "console";
+import { User } from "../entities/Users";
 @InputType()
 class PostInputs {
   @Field()
@@ -39,6 +41,13 @@ export class PostResolvers {
   @FieldResolver(() => String)
   textSnippet(@Root() root: Post) {
     return root.text.slice(0, 50);
+  }
+
+  @FieldResolver(() => User)
+  async creator(@Root() post: Post) {
+    const user = await User.findBy({ id: post.creatorId });
+    console.log(user);
+    return user[0];
   }
 
   @Mutation(() => Boolean)
@@ -131,13 +140,6 @@ export class PostResolvers {
     const posts = await conn.query(
       `
       select p.* ,
-        json_build_object(
-          'id' , u.id,
-          'username' , u.username,
-          'email' , u.email,
-          'createdAt' , u."createdAt",
-          'updatedAt' , u."updatedAt"
-          ) creator,
           ${
             req.session.userId
               ? '(select value from updoot where "userId" = $2 and "postId"=p.id )"voteStatus"'
@@ -208,24 +210,32 @@ export class PostResolvers {
   }
 
   @Mutation(() => Post, { nullable: true })
+  @UseMiddleware(isAuth)
   async updatePost(
     @Arg("id", () => Int) id: number,
-    @Arg("title", () => String, { nullable: true }) title: string
+    @Arg("title") title: string,
+    @Arg("text") text: string,
+    @Ctx() { req }: MyContext
   ): Promise<Post | null> {
     // const post = await em.findOne(Post, { id });
-    const post = await Post.findOneBy({ id });
-    if (!post) {
-      return null;
-    }
-
-    if (typeof title !== "undefined") {
-      // post.title = title;
-      // await em.persistAndFlush(post);
-
-      await Post.update({ id }, { title: title });
-    }
-
-    return post;
+    // const post = await Post.findOneBy({ id });
+    // if (!post) {
+    //   return null;
+    // }
+    // post.title = title;
+    // await em.persistAndFlush(post);
+    // await Post.update({ id, creatorId: req.session.userId }, {});
+    const result = await conn
+      .createQueryBuilder()
+      .update(Post)
+      .set({ title: title, text: text })
+      .where("id = :id and creatorId = :creatorId", {
+        id,
+        creatorId: req.session.userId,
+      })
+      .returning("*")
+      .execute();
+    return result.raw[0];
   }
 
   @Mutation(() => Boolean)
@@ -234,9 +244,17 @@ export class PostResolvers {
     @Arg("id", () => Int) id: number,
     @Ctx() { req }: MyContext
   ): Promise<Boolean> {
-    // await em.nativeDelete(Post, { id });
-    //deletes only post which the current logged in user have created
-    await Updoot.delete({ postId: id });
+    // NOT CASCADE WAY
+    // // await em.nativeDelete(Post, { id });
+    // const post = await Post.find({ where: { id } });
+    // if (!post) {
+    //   return false;
+    // }
+    // if (post[0].creatorId !== req.session.userId) {
+    //   throw new Error("not authorized");
+    // }
+    // //deletes only post which the current logged in user have created
+    // await Updoot.delete({ postId: id });
     await Post.delete({ id, creatorId: req.session.userId });
     return true;
   }

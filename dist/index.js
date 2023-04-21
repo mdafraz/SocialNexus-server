@@ -30,6 +30,8 @@ const Post_1 = require("./entities/Post");
 const Users_1 = require("./entities/Users");
 const path_1 = __importDefault(require("path"));
 const Updoot_1 = require("./entities/Updoot");
+const createUserLoader_1 = require("./utils/createUserLoader");
+const createUpdootLoader_1 = require("./utils/createUpdootLoader");
 const conn = new typeorm_1.DataSource({
     type: "postgres",
     database: "reddit2",
@@ -79,6 +81,8 @@ function main() {
                     req,
                     res,
                     redis,
+                    userLoader: (0, createUserLoader_1.CreateUserLoader)(),
+                    updootLoader: (0, createUpdootLoader_1.CreateUpdootLoader)(),
                 };
             },
         }));

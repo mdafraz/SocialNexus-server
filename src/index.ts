@@ -16,6 +16,8 @@ import { Post } from "./entities/Post";
 import { User } from "./entities/Users";
 import path from "path";
 import { Updoot } from "./entities/Updoot";
+import { CreateUserLoader } from "./utils/createUserLoader";
+import { CreateUpdootLoader } from "./utils/createUpdootLoader";
 
 const conn = new DataSource({
   type: "postgres",
@@ -92,6 +94,8 @@ async function main() {
           req,
           res,
           redis,
+          userLoader: CreateUserLoader(),
+          updootLoader: CreateUpdootLoader(),
         };
       },
     })

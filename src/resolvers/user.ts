@@ -140,7 +140,7 @@ export class UserResolvers {
   async me(@Ctx() { req }: MyContext) {
     //you are not logged in
     const userId = req.session.userId;
-    console.log(userId);
+
     if (!userId) {
       return null;
     }
@@ -149,7 +149,6 @@ export class UserResolvers {
         id: userId,
       },
     });
-    console.log(user);
 
     // const user = await em.findOne(User, { id: userId });
     return user[0];

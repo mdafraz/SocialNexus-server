@@ -130,7 +130,6 @@ let UserResolvers = class UserResolvers {
     me({ req }) {
         return __awaiter(this, void 0, void 0, function* () {
             const userId = req.session.userId;
-            console.log(userId);
             if (!userId) {
                 return null;
             }
@@ -139,7 +138,6 @@ let UserResolvers = class UserResolvers {
                     id: userId,
                 },
             });
-            console.log(user);
             return user[0];
         });
     }

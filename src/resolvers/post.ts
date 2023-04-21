@@ -44,10 +44,23 @@ export class PostResolvers {
   }
 
   @FieldResolver(() => User)
-  async creator(@Root() post: Post) {
-    const user = await User.findBy({ id: post.creatorId });
-    console.log(user);
-    return user[0];
+  async creator(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
+    return userLoader.load(post.creatorId);
+  }
+
+  @FieldResolver(() => Int, { nullable: true })
+  async voteStatus(
+    @Root() post: Post,
+    @Ctx() { updootLoader, req }: MyContext
+  ) {
+    if (!req.session.userId) {
+      return null;
+    }
+    const updoot = await updootLoader.load({
+      postId: post.id,
+      userId: req.session.userId,
+    });
+    return updoot ? updoot.value : null;
   }
 
   @Mutation(() => Boolean)
@@ -128,26 +141,15 @@ export class PostResolvers {
     //+1 because we will fetch one more post to check if there are more post or not
     // await sleep(3000);
     const replacements: any[] = [realLimitPlusOne];
-    if (req.session.userId) {
-      replacements.push(req.session.userId);
-    }
 
-    let cursorIdx = 3;
     if (cursor) {
       replacements.push(new Date(parseInt(cursor)));
-      cursorIdx = replacements.length;
     }
     const posts = await conn.query(
       `
-      select p.* ,
-          ${
-            req.session.userId
-              ? '(select value from updoot where "userId" = $2 and "postId"=p.id )"voteStatus"'
-              : 'null as "voteStatus"'
-          } 
+      select p.* 
         from post p
-      inner join public.user u on u.id = p."creatorId"
-      ${cursor ? `where p."createdAt"< $${cursorIdx}` : ""} 
+      ${cursor ? `where p."createdAt"< $2` : ""} 
       order by p."createdAt" DESC
       limit $1
       `,

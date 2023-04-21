@@ -9,3 +9,7 @@ we are always fetching the creator even if we do not require it in the posts.grp
 and sometimes it is good to split out a query into multiple smaller query instead of a big query 
 
 we are gonna add a field resolver so no matter where our posts comes from its going to fetch the data
+
+note context is going to run on every req so a new userLoader is going to create on every req 
+so it baches and caches loading of users in single request 
+data loader caches and batches

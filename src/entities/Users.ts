@@ -46,4 +46,3 @@ export class User extends BaseEntity {
   updatedAt: Date;
 }
 
-//?? one to many and many to one ????

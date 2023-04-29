@@ -8,5 +8,3 @@ export const isAuth: MiddlewareFn<MyContext> = ({ context }, next) => {
 
   return next();
 };
-// typegraphql has a middleware useMiddleware that we will use
-// so How middleware works is it runs before your resolver(querys or mutations)

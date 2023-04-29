@@ -261,10 +261,3 @@ export class PostResolvers {
     return true;
   }
 }
-
-//pagination using offset???
-// we can use json_build_object because we are using postgress sql
-//json_build_object("username" , u.username) creator
-//json_build_object( this is key ,  this is the value) objectsname
-//bug with me query
-//textSnippet?

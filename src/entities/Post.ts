@@ -57,5 +57,3 @@ export class Post extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 }
-
-// we will set many to one relationship for post beacuse a single user can have multiple post

@@ -19,5 +19,3 @@ export const CreateUpdootLoader = () =>
       );
     }
   );
-
-// need to review it??
